@@ -1,5 +1,6 @@
 ﻿using WindowsInput;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace SpeechCommands.Desktop_Actions
 {
@@ -8,6 +9,9 @@ namespace SpeechCommands.Desktop_Actions
         static InputSimulator inputSimulator = new InputSimulator();
         KeyboardSimulator keyboardSimulator = new KeyboardSimulator(inputSimulator);
         MouseSimulator mouseSimulator = new MouseSimulator(inputSimulator);
+        ScreenCapture screenCapture = new ScreenCapture();
+
+        int _speed = 10;
 
         public void pressKey(WindowsInput.Native.VirtualKeyCode virtualKeyCode) {
             keyboardSimulator.KeyPress(virtualKeyCode);
@@ -23,36 +27,42 @@ namespace SpeechCommands.Desktop_Actions
             pressKey(WindowsInput.Native.VirtualKeyCode.SPACE);
         }
 
+        public void setMouseMoveSpeed(Boolean up) 
+        {
+            if(up)
+            {
+                _speed=10;
+            }
+            else
+            {
+                _speed=2;
+            }
+        }
+
         public void moveMouseTrackPad(double deltaX, double deltaY)
         {
 
             // Move the mouse to the new position
-
-            int deltaX1 = (int)deltaX;
-            int deltaY1 = (int)deltaY;
-
-
-
             int newX = Cursor.Position.X;
             int newY = Cursor.Position.Y;
 
             if(deltaX>298 && deltaY>132.21875 && deltaY < 317)
             {
-                newX = Cursor.Position.X + 10;
+                newX = Cursor.Position.X + _speed;
                 //newY = Cursor.Position.Y + (int)deltaY / 24;
             }else if(deltaY > 132.21875 && deltaY< 317)
             {
-                newX = Cursor.Position.X -10;
+                newX = Cursor.Position.X - _speed;
             }
 
             if (deltaY < 132.21875)
             {
-                newY = Cursor.Position.Y-10;
+                newY = Cursor.Position.Y - _speed;
                 //newY = Cursor.Position.Y + (int)deltaY / 24;
             }
             else if (deltaY > 317)
             {
-                newY = Cursor.Position.Y+10;
+                newY = Cursor.Position.Y + _speed;
             }
 
             Cursor.Position = new Point(newX, newY);
@@ -90,6 +100,19 @@ namespace SpeechCommands.Desktop_Actions
                 mouseSimulator.MoveMouseTo(normalizedX, normalizedY);
                 play();
             }
+        }
+
+        public void skipIntro()
+        {
+            var position = ScreenCapture.FindTextOnScreen("Skip");
+            if (position.X != null)
+            {
+                Console.WriteLine("X: " + position.X + " Y: " + position.Y);
+                mouseSimulator.MoveMouseTo(position.X, position.Y);
+                Thread.Sleep(50);
+                mouseSimulator.LeftButtonDoubleClick();
+            }
+
         }
 
         public void skip()
@@ -208,5 +231,25 @@ namespace SpeechCommands.Desktop_Actions
             Process.Start(psi);
         }
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+        private const int SC_MONITORPOWER = 0xF170;
+        private const int WM_SYSCOMMAND = 0x0112;
+        private const int MONITOR_OFF = 2;
+
+
+        public void SleepComputer()
+        {
+            // Turn off the screen
+            SendMessage(new IntPtr(0xFFFF), WM_SYSCOMMAND, (IntPtr)SC_MONITORPOWER, (IntPtr)MONITOR_OFF);
+
+            // Put the computer to sleep
+            var psi = new ProcessStartInfo("rundll32.exe", "powrprof.dll,SetSuspendState 0,1,0")
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process.Start(psi);
+        }
     }
 }

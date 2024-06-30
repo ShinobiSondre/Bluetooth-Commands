@@ -114,7 +114,7 @@ namespace Bluetooth_Commands
             switch (commandReceived)
             {
                 case "Off":
-                keyboard.ShutDownComputer();
+                keyboard.SleepComputer();
                     break;
                 case "Play":
                     keyboard.play();
@@ -145,6 +145,12 @@ namespace Bluetooth_Commands
                     newVolume = currentVolume - 25;
                     if (newVolume < 0.0f) newVolume = 0.0f; // Limit volume to 0%
                     volumeController.SetVolume(newVolume);
+                    break;
+                case "Speed Up":
+                    keyboard.setMouseMoveSpeed(true);
+                    break;
+                case "Speed Down":
+                    keyboard.setMouseMoveSpeed(false);
                     break;
                 case "Chrometab": 
                     keyboard.openChromeTab(commandReceived.Split(",")[1]);
