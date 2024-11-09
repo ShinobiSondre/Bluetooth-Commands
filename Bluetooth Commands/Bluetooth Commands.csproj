@@ -13,6 +13,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="InputSimulator" Version="1.0.4" />
+		<PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
 		<PackageReference Include="InTheHand.Net.Bluetooth" Version="4.1.43" />
 		<PackageReference Include="Microsoft.Windows.Compatibility" Version="8.0.4" />
 		<PackageReference Include="NAudio" Version="2.2.1" />

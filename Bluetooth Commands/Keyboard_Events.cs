@@ -1,6 +1,8 @@
 ﻿using WindowsInput;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Interop.UIAutomationClient;
+using WindowsInput.Native;
 
 namespace SpeechCommands.Desktop_Actions
 {
@@ -38,6 +40,82 @@ namespace SpeechCommands.Desktop_Actions
                 _speed=2;
             }
         }
+
+        public void Search(bool search = false, string text = "")
+        {   
+            if (search)
+            {
+                pressKey(WindowsInput.Native.VirtualKeyCode.RETURN);
+            }
+            {
+                inputSimulator.Keyboard.ModifiedKeyStroke(VirtualKeyCode.CONTROL, VirtualKeyCode.VK_A);
+                Thread.Sleep(100);
+
+                inputSimulator.Keyboard.KeyPress(VirtualKeyCode.DELETE);
+                Thread.Sleep(100);
+
+                inputSimulator.Keyboard.TextEntry(text);
+
+            }
+        }
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        /*public static void Input(string input)
+        {
+            // Get the currently active window handle
+            IntPtr activeWindowHandle = GetForegroundWindow();
+
+            // Get the process ID of the active window
+            GetWindowThreadProcessId(activeWindowHandle, out uint processId);
+            Process activeProcess = Process.GetProcessById((int)processId);
+
+            // Check if the active window is Google Chrome
+            if (activeProcess.ProcessName.Contains("chrome"))
+            {
+                // Initialize UI Automation
+                IUIAutomation automation = new CUIAutomation();
+                IUIAutomationElement chromeWindow = automation.ElementFromHandle(activeWindowHandle);
+
+                // Get the focused element
+                IUIAutomationElement focusedElement = automation.GetFocusedElement();
+
+                if (focusedElement != null)
+                {
+                    // Get the name and control type of the focused elemen
+
+                    var controlType = focusedElement.CurrentControlType;
+                    var name = focusedElement.CurrentName;
+
+                    Console.WriteLine("Focused Element:");
+                    Console.WriteLine("Name: " + name);
+                    Console.WriteLine("Control Type: " + controlType);
+
+                    // If the focused element is an input field, you can set its value directly (if supported)
+                    if (controlType == UIA_ControlTypeIds.UIA_EditControlTypeId)
+                    {
+                        IUIAutomationValuePattern valuePattern;
+
+                        var pattern = focusedElement.GetCurrentPattern(c);
+
+                        focusedElement.GetCurrentPattern(1);
+                        valuePattern.SetValue("Your text here"); // Set the text directly
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No focused element found in the Chrome window.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("The active window is not Google Chrome.");
+            }
+        }*/
 
         public void moveMouseTrackPad(double deltaX, double deltaY)
         {

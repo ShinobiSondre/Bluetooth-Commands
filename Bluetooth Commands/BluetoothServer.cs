@@ -95,9 +95,6 @@ namespace Bluetooth_Commands
 
         private void HandleCommand(string commandReceived)
         {
-
-         
-
             if (commandReceived.Contains("Mouse Move"))
             {
                 try
@@ -107,7 +104,29 @@ namespace Bluetooth_Commands
                     double y = Double.Parse(numberedString.Split(",")[1]);
                     keyboard.moveMouseTrackPad(x, y);
                 }
-                catch (Exception ex) { Console.WriteLine(ex.Message); }
+                catch (Exception ex) { }
+            }
+            else if (commandReceived.Contains("TextInput:")) 
+            {
+                string input = "";
+                input = commandReceived.Split(":")[1];
+
+                if (input.Contains("\n"))
+                {
+
+                    keyboard.Search(true);
+                }
+                else
+                {
+                    if (input.Contains("TextInput"))
+                    {
+                        keyboard.Search(false, text: input.Replace("TextInput", ""));
+                    }
+                    else
+                    {
+                        keyboard.Search(false, text: input);
+                    }
+                }
             }
 
 
@@ -151,6 +170,9 @@ namespace Bluetooth_Commands
                     break;
                 case "Speed Down":
                     keyboard.setMouseMoveSpeed(false);
+                    break;
+                case "Search":
+                    keyboard.Search(true);
                     break;
                 case "Chrometab": 
                     keyboard.openChromeTab(commandReceived.Split(",")[1]);
