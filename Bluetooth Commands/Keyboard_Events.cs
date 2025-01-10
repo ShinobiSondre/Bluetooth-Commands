@@ -3,6 +3,12 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Interop.UIAutomationClient;
 using WindowsInput.Native;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
 
 namespace SpeechCommands.Desktop_Actions
 {
@@ -13,7 +19,33 @@ namespace SpeechCommands.Desktop_Actions
         MouseSimulator mouseSimulator = new MouseSimulator(inputSimulator);
         ScreenCapture screenCapture = new ScreenCapture();
 
-        int _speed = 10;
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr hWnd, int hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+
+
+        private const int _HWND_TOP = 0;
+        private const uint _SWP_NOSIZE = 0x0001;
+        private const uint _SWP_NOZORDER = 0x0004;
+
+        private int _SPEED = 10;
 
         public void pressKey(WindowsInput.Native.VirtualKeyCode virtualKeyCode) {
             keyboardSimulator.KeyPress(virtualKeyCode);
@@ -33,12 +65,23 @@ namespace SpeechCommands.Desktop_Actions
         {
             if(up)
             {
-                _speed=10;
+                _SPEED=10;
             }
             else
             {
-                _speed=2;
+                _SPEED=2;
             }
+        }
+
+        public void scrollUp()
+        {
+            // Simulate scrolling up
+            inputSimulator.Mouse.VerticalScroll(5);
+        }
+
+        public void scrollDown()
+        {
+            inputSimulator.Mouse.VerticalScroll(-5);
         }
 
         public void Search(bool search = false, string text = "")
@@ -126,21 +169,21 @@ namespace SpeechCommands.Desktop_Actions
 
             if(deltaX>298 && deltaY>132.21875 && deltaY < 317)
             {
-                newX = Cursor.Position.X + _speed;
+                newX = Cursor.Position.X + _SPEED;
                 //newY = Cursor.Position.Y + (int)deltaY / 24;
             }else if(deltaY > 132.21875 && deltaY< 317)
             {
-                newX = Cursor.Position.X - _speed;
+                newX = Cursor.Position.X - _SPEED;
             }
 
             if (deltaY < 132.21875)
             {
-                newY = Cursor.Position.Y - _speed;
+                newY = Cursor.Position.Y - _SPEED;
                 //newY = Cursor.Position.Y + (int)deltaY / 24;
             }
             else if (deltaY > 317)
             {
-                newY = Cursor.Position.Y + _speed;
+                newY = Cursor.Position.Y + _SPEED;
             }
 
             Cursor.Position = new Point(newX, newY);
@@ -297,6 +340,55 @@ namespace SpeechCommands.Desktop_Actions
                 pressKey(WindowsInput.Native.VirtualKeyCode.LEFT);
             }
             
+        }
+
+        public void openChromeTabForSecondScreen (string url)
+        {
+            // Launch Chrome with the specified URL
+            var chromeProcess = Process.Start(new ProcessStartInfo
+            {
+                FileName = "chrome.exe",
+                Arguments = url,
+                WindowStyle = ProcessWindowStyle.Normal,
+                UseShellExecute = true
+            });
+
+            if (chromeProcess != null)
+            {
+                // Wait for the Chrome window to be created
+                chromeProcess.WaitForInputIdle();
+
+                // Get the handle of the Chrome window
+                IntPtr hWnd = chromeProcess.MainWindowHandle;
+
+                // Check if there's a second screen
+                if (Screen.AllScreens.Length > 1)
+                {
+                    Console.WriteLine("test");
+                    // Get the bounds of the second screen
+                    var secondScreen = Screen.AllScreens[1];
+                    var bounds = secondScreen.Bounds;
+
+                    // Adjust the window position and size to fit the second screen
+                    int width = bounds.Width;
+                    int height = bounds.Height;
+
+                    // Move and resize the window to the second screen
+                    bool success = SetWindowPos(hWnd, _HWND_TOP, bounds.X, bounds.Y, width, height, _SWP_NOZORDER);
+
+                    if (!success)
+                    {
+                        // Handle errors if needed
+                        int error = Marshal.GetLastWin32Error();
+                        Console.WriteLine($"SetWindowPos failed with error code: {error}");
+                    }
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("Failed to start Chrome process.");
+            }
         }
 
         public void ShutDownComputer()

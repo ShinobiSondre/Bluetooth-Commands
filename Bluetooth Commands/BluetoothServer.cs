@@ -106,6 +106,12 @@ namespace Bluetooth_Commands
                 }
                 catch (Exception ex) { }
             }
+            else if (commandReceived.Contains("openPage"))
+            {
+                var url = commandReceived.Split(" ")[1].Trim();
+
+                keyboard.openChromeTabForSecondScreen(url);
+            }
             else if (commandReceived.Contains("TextInput:")) 
             {
                 string input = "";
@@ -113,7 +119,6 @@ namespace Bluetooth_Commands
 
                 if (input.Contains("\n"))
                 {
-
                     keyboard.Search(true);
                 }
                 else
@@ -166,10 +171,10 @@ namespace Bluetooth_Commands
                     volumeController.SetVolume(newVolume);
                     break;
                 case "Speed Up":
-                    keyboard.setMouseMoveSpeed(true);
+                    keyboard.scrollUp();
                     break;
                 case "Speed Down":
-                    keyboard.setMouseMoveSpeed(false);
+                    keyboard.scrollDown();
                     break;
                 case "Search":
                     keyboard.Search(true);
